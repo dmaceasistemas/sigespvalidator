@@ -1,0 +1,6 @@
+<Files wsgi.py>
+Order deny,allow
+Require all granted
+</Files>
+
+                      

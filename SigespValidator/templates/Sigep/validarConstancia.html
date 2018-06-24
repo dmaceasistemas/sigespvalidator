@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+  {% block  content %}
+  	 {{msj}}
+  	<form id="formularioConstancia" action"." method="POST" role="form" class="form-horizontal" >
+  		{% csrf_token %}
+   <div class="form-group {% if form.codigo.errors %} alert alert-danger {% endif %}" >
+    <label class="col-sm-3 control-label" for={{form.codigo.id_for_label}}> Codigo de Validacion :</label>
+    <div class="col-sm-6">
+      {{form.codigo}}
+      {% if form.codigo.errors %}  
+      <ul>          
+        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+          {% for error in form.codigo.errors %}
+            <li><strong class="label label-danger " aria-hidden="true">{{error|escape}} &times;</strong></li>
+          {% endfor %}
+        </ul> 
+      {% endif %}
+    </div>      
+    <div class="col-sm-3">
+    	    <input type="submit" class="btn btn-primary" value="Consultar " >
+    </div>
+  </div>  
+  	</form>
+  {% endblock %} 
+
+
+{% block js %}
+	
+<script type="text/javascript">
+
+	$(document).ready( function(){
+		
+    function mostrarDatos (arg){
+			var div   = $('<div></div>',{'class':'row well','align':'center'});  
+			var mensaje;
+      var contenedor;
+      var nombre; 
+
+      if(arg.valida == true){
+			 
+        if(arg.estatu == 3){
+          nombre = $('<h2 class="well "></h2>');
+          nombre.append('Personal : '+ arg.nomper+" "+ arg.apeper);
+          mensaje = $('<h2 class="well col-md-6 alert alert-danger"></h2>');
+          mensaje.append(arg.estatu_str);
+        }
+        else{
+           //mostrar los datos 
+          nombre = $('<h2 class="well "></h2>');
+          nombre.append('Personal : '+ arg.nomper+" "+ arg.apeper);
+          mensaje = $('<h2 class="well col-md-6 alert alert-success">Documento Valido </h2>');
+          contenedor = $('<h2 class="col-md-6 well ">Estado del Documento </h2>');          
+        }
+        div.append(nombre);
+				div.append(contenedor);						
+				div.append(mensaje);
+      }
+
+			else{
+
+        if(arg.error == true){
+          var mensaje = $('<h2 class="well col-md-6 alert alert-danger">Constancia Vencida </h2>');
+          var contenedor = $('<h2 class="col-md-6 well ">Estado del Documento </h2>');
+          div.append(contenedor);           
+          div.append(mensaje);
+        }
+        else{
+        	var mensaje = $('<h2 class="well col-md-6 alert alert-danger">Constancia Vencida </h2>');
+	 		  	var contenedor = $('<h2 class="col-md-6 well ">Estado del Documento </h2>');
+	 	   		div.append(contenedor);						
+	 	   		div.append(mensaje);
+			  }
+      }
+					//colocarlo en su santo lugar 
+  		var button = $('<input></input>',{'class':'btn btn-primary','type':'button','value':'Ingrese Otro Codigo','onclick':'window.location.reload();'});
+
+			$('#contenedor').empty();
+			$('#contenedor').append(div);
+			$('#contenedor').append(button);
+
+	  } // end funcion Mostrar Datos 
+
+	 $('#formularioConstancia').submit(function(event){
+  
+    event.preventDefault();
+    var datos_formulario = $('#formularioConstancia').serialize();
+    
+      $.ajax({
+
+       	url:"{% url 'constancia_view' %}",
+       	data:datos_formulario,
+       	type:'POST',
+       	dataType:'JSON',
+
+       	success:function(datos){
+        
+        	if (datos.codigo == 404 ){
+
+          	$('#contenedor').empty();
+  					var h1 = $('<h1></h1> ');
+  					var button = $('<input></input>',{'class':'btn btn-primary','type':'button','value':'Ingrese Otro Codigo','onclick':'window.location.reload();'});
+  					
+            h1.append(datos.msj);
+  					$('#contenedor').append(h1);
+  					$('#contenedor').append(button);
+          }
+          else{
+   					mostrarDatos(datos);
+     			}
+        }, //en success 
+        error:function(xhr,ajaOptions,thrownError){
+   
+       	},
+      	statusCode:{
+        	404: function(){
+  					alert( "page not found" );
+  				},
+  			}
+      }); // end Ajax 
+  	}); // end envio de formulario 
+	});// end document 
+
+	</script>
+{% endblock %}
